@@ -1,20 +1,46 @@
-package com.example.todoapp
+package com.example.todo
 
-import android.os.Bundle
-import androidx.activity.enableEdgeToEdge
+
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
+import android.os.Bundle
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.room.Room
+import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+
+
+// entity - table
+// dao - queries
+// database
 
 class MainActivity : AppCompatActivity() {
+    private lateinit var database: myDatabase
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
         setContentView(R.layout.activity_main)
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-            insets
+        database = Room.databaseBuilder(
+            applicationContext, myDatabase::class.java, "To_Do"
+        ).build()
+        add.setOnClickListener {
+            val intent = Intent(this, CreateCard::class.java)
+            startActivity(intent)
         }
+        deleteAll.setOnClickListener {
+            DataObject.deleteAll()
+            GlobalScope.launch {
+                database.dao().deleteAll()
+            }
+            setRecycler()
+        }
+
+        setRecycler()
+
+    }
+
+    fun setRecycler() {
+        recycler_view.adapter = Adapter(DataObject.getAllData())
+        recycler_view.layoutManager = LinearLayoutManager(this)
     }
 }
